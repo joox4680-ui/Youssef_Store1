@@ -1,0 +1,216 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Youssef Store | Premium Digital Store</title>
+<style>
+:root{--gold:#d6ad60;--bg:#090909;--card:#151515}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:white;font-family:Arial,sans-serif}
+header{padding:20px 7%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #292929;position:sticky;top:0;background:#090909ed;z-index:10}
+.logo{font-size:24px;font-weight:bold;color:var(--gold)}
+button{cursor:pointer;border:0}
+.lang,.admin{background:#242424;color:white;padding:10px 15px;border-radius:8px;margin:3px}
+.hero{text-align:center;padding:95px 20px;background:radial-gradient(ellipse at top,#44351d,#090909 65%)}
+.hero h1{font-size:clamp(35px,7vw,65px);margin:0 0 18px}
+.gold{color:var(--gold)}
+.hero p{color:#bbb;font-size:17px;line-height:1.8}
+.btn{display:inline-block;background:var(--gold);color:#111;padding:14px 27px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:15px}
+section{padding:55px 7%}
+.heading{text-align:center;color:var(--gold);font-size:30px;margin-bottom:35px}
+.services,.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:20px}
+.card{background:var(--card);border:1px solid #292929;border-radius:14px;padding:25px;text-align:center;transition:.3s}
+.card:hover{transform:translateY(-8px);border-color:var(--gold);box-shadow:0 10px 30px #d6ad6020}
+.card h3{color:var(--gold)}
+.product img{width:100%;height:145px;object-fit:cover;border-radius:9px;background:#222}
+.price{color:var(--gold);font-size:20px;font-weight:bold}
+.buy{background:var(--gold);padding:12px 20px;border-radius:7px;margin-top:12px;font-weight:bold}
+.about{text-align:center;line-height:2;color:#bbb}
+footer{text-align:center;padding:30px;border-top:1px solid #292929;color:#999}
+.reveal{opacity:0;transform:translateY(25px);transition:.7s}
+.reveal.show{opacity:1;transform:translateY(0)}
+#panel{display:none;position:fixed;inset:0;background:#080808f5;z-index:30;overflow:auto;padding:25px}
+#panel input,#panel textarea{width:100%;padding:12px;margin:8px 0;background:#222;color:white;border:1px solid #555;border-radius:7px}
+#panel button{padding:12px;background:var(--gold);border-radius:7px;margin:5px}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">YOUSSEF STORE</div>
+<div>
+<button class="lang" onclick="toggleLang()">EN / AR</button>
+<button class="admin" onclick="openAdmin()">⚙ Admin</button>
+</div>
+</header>
+
+<div class="hero">
+<h1 id="heroTitle">مرحباً بك في <span class="gold">Youssef Store</span></h1>
+<p id="heroDesc">وجهتك الأولى لشحن الألعاب والخدمات الرقمية بسرعة وأمان</p>
+<a class="btn" href="#store" id="heroBtn">اكتشف المتجر</a>
+</div>
+
+<section class="reveal">
+<h2 class="heading" id="serviceTitle">خدماتنا</h2>
+<div class="services">
+<div class="card"><h3>🎮 Gaming</h3><p id="s1">شحن الألعاب والباقات</p></div>
+<div class="card"><h3>💎 Digital</h3><p id="s2">خدمات رقمية متنوعة</p></div>
+<div class="card"><h3>⚡ Fast</h3><p id="s3">سرعة في تنفيذ الطلبات</p></div>
+</div>
+</section>
+
+<section id="store" class="reveal">
+<h2 class="heading" id="storeTitle">منتجات المتجر</h2>
+<div class="products" id="products"></div>
+</section>
+
+<section class="reveal">
+<h2 class="heading" id="aboutTitle">من نحن</h2>
+<p class="about" id="aboutText">Youssef Store وجهتك للخدمات الرقمية وشحن الألعاب، نهتم بتقديم تجربة سهلة وسريعة لعملائنا.</p>
+</section>
+
+<section class="reveal">
+<h2 class="heading" id="contactTitle">تواصل معنا</h2>
+<div style="text-align:center">
+<a class="btn" href="https://wa.me/201227540023" id="contactBtn">تواصل عبر واتساب</a>
+</div>
+</section>
+
+<footer>© 2026 Youssef Store - All Rights Reserved</footer>
+
+<div id="panel">
+<h2 style="color:var(--gold)">لوحة تحكم Youssef Store</h2>
+<button onclick="addProduct()">+ إضافة منتج</button>
+<button onclick="editContent()">تعديل محتوى الموقع</button>
+<div id="adminProducts"></div>
+<button onclick="closeAdmin()">حفظ وإغلاق</button>
+</div>
+
+<script>
+let english=false;
+let products=JSON.parse(localStorage.getItem('ys_products')||'null')||[
+{name:'PUBG Mobile UC',price:'',image:'',desc:'شحن شدات ببجي'},
+{name:'Free Fire Diamonds',price:'',image:'',desc:'شحن جواهر فري فاير'},
+{name:'Digital Services',price:'',image:'',desc:'خدمات رقمية متنوعة'}
+];
+
+function render(){
+document.getElementById('products').innerHTML=products.map((p,i)=>`
+<div class="card product">
+<img src="${safe(p.image)||'https://placehold.co/500x300/151515/d6ad60?text=Youssef+Store'}" alt="Product">
+<h3>${safe(p.name)}</h3><p>${safe(p.desc)}</p>
+<div class="price">${p.price?'EGP '+safe(p.price):'تواصل للسعر'}</div>
+<button class="buy" onclick="order(${i})">${english?'Order Now':'اطلب الآن'}</button>
+</div>`).join('');
+}
+function safe(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function order(i){
+let p=products[i];
+let msg=english?'Hello, I want to order: ':'مرحباً، أريد طلب: ';
+window.open('https://wa.me/201227540023?text='+encodeURIComponent(msg+p.name),'_blank');
+}
+function toggleLang(){
+english=!english;
+document.documentElement.lang=english?'en':'ar';
+document.documentElement.dir=english?'ltr':'rtl';
+document.getElementById('heroTitle').innerHTML=english?'Welcome to <span class="gold">Youssef Store</span>':'مرحباً بك في <span class="gold">Youssef Store</span>';
+document.getElementById('heroDesc').textContent=english?'Your destination for gaming top-ups and digital services':'وجهتك الأولى لشحن الألعاب والخدمات الرقمية بسرعة وأمان';
+document.getElementById('heroBtn').textContent=english?'Explore Store':'اكتشف المتجر';
+document.getElementById('serviceTitle').textContent=english?'Our Services':'خدماتنا';
+document.getElementById('s1').textContent=english?'Game top-ups and packages':'شحن الألعاب والباقات';
+document.getElementById('s2').textContent=english?'Various digital services':'خدمات رقمية متنوعة';
+document.getElementById('s3').textContent=english?'Fast order processing':'سرعة في تنفيذ الطلبات';
+document.getElementById('storeTitle').textContent=english?'Our Products':'منتجات المتجر';
+document.getElementById('aboutTitle').textContent=english?'About Us':'من نحن';
+document.getElementById('aboutText').textContent=english?'Your destination for digital services and gaming top-ups.':'Youssef Store وجهتك للخدمات الرقمية وشحن الألعاب.';
+document.getElementById('contactTitle').textContent=english?'Contact Us':'تواصل معنا';
+document.getElementById('contactBtn').textContent=english?'Contact on WhatsApp':'تواصل عبر واتساب';
+render();
+}
+function openAdmin(){
+let pass=prompt('Enter Admin Password');
+if(pass==='1234'){document.getElementById('panel').style.display='block';adminRender();}
+else if(pass!==null)alert('Wrong Password');
+}
+function adminRender(){
+document.getElementById('adminProducts').innerHTML=products.map((p,i)=>`
+<div class="card" style="margin:15px 0;text-align:right">
+<h3>Product ${i+1}</h3>
+<input id="n${i}" value="${safe(p.name)}" placeholder="اسم المنتج">
+<input id="p${i}" value="${safe(p.price)}" placeholder="السعر">
+<input id="i${i}" value="${safe(p.image)}" placeholder="رابط الصورة">
+<input id="d${i}" value="${safe(p.desc)}" placeholder="الوصف">
+<button onclick="saveProduct(${i})">حفظ المنتج</button>
+<button onclick="deleteProduct(${i})">حذف</button>
+</div>`).join('');
+}
+function saveProduct(i){
+products[i]={name:document.getElementById('n'+i).value,price:document.getElementById('p'+i).value,image:document.getElementById('i'+i).value,desc:document.getElementById('d'+i).value};
+store();adminRender();
+}
+function addProduct(){
+products.push({name:'منتج جديد',price:'',image:'',desc:''});store();adminRender();
+}
+function deleteProduct(i){
+if(confirm('حذف المنتج؟')){products.splice(i,1);store();adminRender();}
+}
+function store(){
+localStorage.setItem('ys_products',JSON.stringify(products));render();
+}
+function editContent(){
+let title=prompt('اكتب عنوان القسم الرئيسي الجديد');
+if(title!==null){
+document.getElementById('heroTitle').textContent=title;
+localStorage.setItem('ys_title',title);
+}
+}
+function closeAdmin(){
+store();document.getElementById('panel').style.display='none';
+}
+let savedTitle=localStorage.getItem('ys_title');
+if(savedTitle)document.getElementById('heroTitle').textContent=savedTitle;
+render();
+const observer=new IntersectionObserver(entries=>{
+entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')});
+},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+</script>
+<style>
+.reveal {
+  opacity: 0;
+  transform: translateY(35px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+</style>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('show');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('section, .card').forEach(element => {
+  element.classList.add('reveal');
+  observer.observe(element);
+});
+</script>
+</body>
+</html>
